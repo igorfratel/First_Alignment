@@ -1,7 +1,4 @@
-* Lidar com os warnings
-* Criar função que pega o tamanho das sequencias (talvez modificar o resto do código por causa disso)
-* Criar matriz de programação dinâmica
-* Calcular a similaridade
+* Resolver erro no calculo da similaridade
 * Recuperar o alinhamento ótimo
 * Adicionar medidas de segurança caso os arquivos estejam vazios
 
@@ -9,5 +6,6 @@
 fim
 * Fazer a matrix ser triangular
 * Imprimir a matriz triangular
+* valgrind e gdb
 * Dividir em múltiplos arquivos
 * Fazer headers
