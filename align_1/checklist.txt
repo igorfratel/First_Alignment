@@ -1,7 +1,6 @@
-* Resolver erro no calculo da similaridade
 * Recuperar o alinhamento ótimo
+* Fazer testes de corretude
 * Adicionar medidas de segurança caso os arquivos estejam vazios
-
 
 fim
 * Fazer a matrix ser triangular

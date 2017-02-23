@@ -3,7 +3,7 @@
 #include <fstream>
 #include <algorithm>
 
-#define GAP -1
+#define GAP -2
 
 /*Similarity matrix. eg: Position [5][6] contains the similarity between 5 and 6.*/
 int **sim_matrix;
@@ -84,21 +84,22 @@ void printSeqs(sequence seq_1, sequence seq_2) {
 }
 
 void createDynMatrix(int m, int n) {
+    /*Receives the ints m and n and allocates a mxn 2d array in the global
+     *variable dyn_matrix.*/
     dyn_matrix = new int *[m];
     for (int i = 0; i < m; i++)
         dyn_matrix[i] = new int[n];
-    for (int i = 0; i < m; i++)
-        for (int j = 0; j < n; j++)
-            dyn_matrix[i][j] = 0;
 }
 
 void deleteDynMatrix(int m, int n) {
+    /*Frees the allocated memory for the global 2d mxn array dyn_matrix.*/
     for (int i = 0; i < m; i++)
         delete [] dyn_matrix[i];
     delete [] dyn_matrix;
 }
 
 void printDynMatrix (int m, int n) {
+    /*Prints the mxn global 2d array dyn_matrix.*/
     std::cout << "dyn_matrix dimensions: "<< m << "x" << n;
     for (int i = 0; i < m; i++) { 
         std::cout << "\n";
@@ -108,22 +109,25 @@ void printDynMatrix (int m, int n) {
     std::cout << "\n";
 }
 
-int computeSim (int **dyn_matrix, sequence seq_1, sequence seq_2, int gap) {
+int computeSim (sequence seq_1, sequence seq_2, int gap) {
+    /*Receives two sequences and a gap penalty.
+     *Computes and returns the global similarity between the sequences using the
+     *gap penalty and the sim_matrix.*/
     int match;
     int options[3];
-    for (int i = 0; i < seq_1.len; i++)
+    for (int i = 0; i <= seq_1.len; i++)
         dyn_matrix[i][0] = i * gap;
-    for (int i = 0; i < seq_2.len; i++)
+    for (int i = 0; i <= seq_2.len; i++)
         dyn_matrix[0][i] = i * gap;
-    for (int i = 1; i < seq_1.len; i++)
-        for (int j = 1; j < seq_2.len; j++) {
-            match = sim_matrix[seq_1.symbols[i]][seq_2.symbols[j]];
+    for (int i = 1; i <= seq_1.len; i++)
+        for (int j = 1; j <= seq_2.len; j++) {
+            match = sim_matrix[seq_1.symbols[i-1]-1][seq_2.symbols[j-1]-1];
             options[0] = dyn_matrix[i-1][j] + gap;
             options[1] = dyn_matrix[i-1][j-1] + match;
             options[2] = dyn_matrix[i][j-1] + gap;
             dyn_matrix[i][j] = *std::max_element(options, options + 3);
         }
-    return dyn_matrix[seq_1.len-1][seq_2.len-1];
+    return dyn_matrix[seq_1.len][seq_2.len];
 }
 
 int main() {
@@ -136,9 +140,9 @@ int main() {
     createSeqArray(fseq_1, &seq_1, "sequence_1.txt");
     createSeqArray(fseq_2, &seq_2, "sequence_2.txt");
     printSeqs(seq_1, seq_2);
-    createDynMatrix(seq_1.len, seq_2.len);
-    sim = computeSim (dyn_matrix, seq_1, seq_2, GAP);
-    printDynMatrix(seq_1.len, seq_2.len);
+    createDynMatrix(seq_1.len + 1, seq_2.len + 1);
+    sim = computeSim (seq_1, seq_2, GAP);
+    printDynMatrix(seq_1.len + 1, seq_2.len + 1);
     std::cout << "Similarity: " << sim << "\n";
     deleteSimMatrix();
     deleteDynMatrix(seq_1.len, seq_2.len);
