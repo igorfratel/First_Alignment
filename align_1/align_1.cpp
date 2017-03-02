@@ -6,17 +6,12 @@
 
 #define GAP -2
 
-/*Similarity matrix. eg: Position [5][6] contains the similarity between 5 and 6.*/
+/*Similarity matrix. eg: Position [0][1] contains the similarity between 1 and 2.*/
 int **sim_matrix;
 /*Similarity matrix dimension (dim x dim)*/
 int dim;
 /*Dynamic programming matrix*/
 int **dyn_matrix;
-
-struct sequence {
-    int *symbols;
-    int len;
-};
 
 void createSimMatrix(std::ifstream &fsim_matrix) {
     /*Receives the address to an ifstream (a .txt file).
@@ -25,15 +20,17 @@ void createSimMatrix(std::ifstream &fsim_matrix) {
      *contained in the file.*/
     std::string str_dim;
     fsim_matrix.open("similarity_matrix.txt");
-    fsim_matrix >> str_dim;
-    dim = std::stoi(str_dim);
-    sim_matrix = new int *[dim];
-    for (int i = 0; i < dim; i++)
-        sim_matrix[i] = new int[dim];
-    for (int i = 0; i < dim; i++)
-        for (int j = 0; j < dim; j++)
-         fsim_matrix >> sim_matrix[i][j];
-    fsim_matrix.close();
+    if (fsim_matrix) {
+        fsim_matrix >> str_dim;
+        dim = std::stoi(str_dim);
+        sim_matrix = new int *[dim];
+        for (int i = 0; i < dim; i++)
+            sim_matrix[i] = new int[dim];
+        for (int i = 0; i < dim; i++)
+            for (int j = 0; j < dim; j++)
+             fsim_matrix >> sim_matrix[i][j];
+        fsim_matrix.close();
+    }
 }
 
 void printSimMatrix() {
@@ -54,33 +51,29 @@ void deleteSimMatrix() {
     delete [] sim_matrix;
 }
 
-void createSeqArray(std::ifstream &fseq, sequence *seq,
+void createSeqArray(std::ifstream &fseq, std::vector<int> &seq,
                     std::string filename) {
-    /*Receives the address to an ifstream (a .txt file), a pointer to a sequence
-     *struct and a string.
-     *Reads the first word of the file, which is the sequence length.
-     *Allocates the pointer for the sequence array and fills it with data from
-     *the file.
-     *Returns the filled array.*/
+    /*Receives the address to an ifstream (a .txt file), a reference to an int 
+     *vector and a string.
+     *Fills seq with the elements from the file.*/
     std::string str_len;
+    int value;
     fseq.open(filename);
-    fseq >> str_len;
-    seq->len = std::stoi(str_len);
-    seq->symbols = new int[seq->len];
-    for (int i = 0; i < seq->len; i++)
-        fseq >> seq->symbols[i];
-    fseq.close();
+    if (fseq) {
+        while (fseq >> value)
+            seq.push_back(value);
+        fseq.close();
+    }
 }
 
-void printSeqs(sequence seq_1, sequence seq_2) {
-    /*Receives two sequence structs and prints their symbols attribute to the 
-     *standard output.*/
+void printSeqs(std::vector<int> const &seq_1, std::vector<int> const &seq_2) {
+    /*Receives two sequence vectors and prints them to the standard output.*/
     std::cout << "Sequences:\n";
-    for (int i = 0; i < seq_1.len; i++)
-        std::cout << seq_1.symbols[i] << " ";
+    for (std::vector<int>::size_type i = 0; i < seq_1.size(); i++)
+        std::cout << seq_1[i] << " ";
     std::cout << "\n";
-    for (int i = 0; i < seq_2.len; i++)
-        std::cout << seq_2.symbols[i] << " ";
+    for (std::vector<int>::size_type i = 0; i < seq_2.size(); i++)
+        std::cout << seq_2[i] << " ";
     std::cout << "\n";
 }
 
@@ -110,77 +103,87 @@ void printDynMatrix (int m, int n) {
     std::cout << "\n";
 }
 
-int computeSim (sequence seq_1, sequence seq_2, int gap) {
-    /*Receives two sequences and a gap penalty.
+int computeSim (std::vector<int> const &seq_1,  std::vector<int> const &seq_2) {
+    /*Receives two sequences (int vectors).
      *Computes and returns the global similarity between the sequences using the
-     *gap penalty and the sim_matrix.*/
+     *gap penalty (#define GAP) and the sim_matrix.*/
     int match;
     int options[3];
-    for (int i = 0; i <= seq_1.len; i++)
-        dyn_matrix[i][0] = i * gap;
-    for (int i = 0; i <= seq_2.len; i++)
-        dyn_matrix[0][i] = i * gap;
-    for (int i = 1; i <= seq_1.len; i++)
-        for (int j = 1; j <= seq_2.len; j++) {
-            match = sim_matrix[seq_1.symbols[i-1]-1][seq_2.symbols[j-1]-1];
-            options[0] = dyn_matrix[i-1][j] + gap;
+    for (std::vector<int>::size_type i = 0; i <= seq_1.size(); i++)
+        dyn_matrix[i][0] = i * GAP;
+    for (std::vector<int>::size_type i = 0; i <= seq_2.size(); i++)
+        dyn_matrix[0][i] = i * GAP;
+    for (std::vector<int>::size_type i = 1; i <= seq_1.size(); i++)
+        for (std::vector<int>::size_type j = 1; j <= seq_2.size(); j++) {
+            match = sim_matrix[seq_1[i-1]-1][seq_2[j-1]-1];
+            options[0] = dyn_matrix[i-1][j] + GAP;
             options[1] = dyn_matrix[i-1][j-1] + match;
-            options[2] = dyn_matrix[i][j-1] + gap;
+            options[2] = dyn_matrix[i][j-1] + GAP;
             dyn_matrix[i][j] = *std::max_element(options, options + 3);
         }
-    return dyn_matrix[seq_1.len][seq_2.len];
+    return dyn_matrix[seq_1.size()][seq_2.size()];
 }
 
-void align(int i, int j, int len, std::vector<std::string> &align_1, std::vector<std::string> &align_2, sequence seq_1, sequence seq_2) {
+void align(int i, int j, int len, std::vector<std::string> &align_1, 
+           std::vector<std::string> &align_2, std::vector<int> const &seq_1, 
+           std::vector<int> const &seq_2) {
+    /*Receives two integers (the sizes of the first and second sequences), 
+     *an int len = 0, two string vectors where the aligned sequences will be 
+     *stored and the two sequences to be aligned (int vectors).
+     *Using the dyn_matrix, recovers the upmost optimal alignment between the 
+     *two sequences.*/
     if (i == 0 && j == 0)
         len = 0;
     else if (i > 0 && dyn_matrix[i][j] == dyn_matrix[i-1][j] + GAP) {
         align(i - 1, j, len, align_1, align_2, seq_1, seq_2);
         len++;
-        align_1.push_back(std::to_string(seq_1.symbols[i-1]));
+        align_1.push_back(std::to_string(seq_1[i-1]));
         align_2.push_back("-");
     }
-    else if (i > 0 && j > 0 && dyn_matrix[i][j] == dyn_matrix[i-1][j-1] + sim_matrix[seq_1.symbols[i-1]-1][seq_2.symbols[j-1]-1]) {
+    else if (i > 0 && j > 0 && dyn_matrix[i][j] == dyn_matrix[i-1][j-1] + 
+             sim_matrix[seq_1[i-1]-1][seq_2[j-1]-1]) {
         align(i - 1, j - 1, len, align_1, align_2, seq_1, seq_2);
         len++;
-        align_1.push_back(std::to_string(seq_1.symbols[i-1]));
-        align_2.push_back(std::to_string(seq_2.symbols[j-1]));
+        align_1.push_back(std::to_string(seq_1[i-1]));
+        align_2.push_back(std::to_string(seq_2[j-1]));
     }
     else {
         align(i, j - 1, len, align_1, align_2, seq_1, seq_2);
         len++;
         align_1.push_back("-");
-        align_2.push_back(std::to_string(seq_2.symbols[j-1]));
+        align_2.push_back(std::to_string(seq_2[j-1]));
     }
 }
 
-void printAlignment(const std::vector<std::string> &align_1, const std::vector<std::string> &align_2) {
+void printAlignment(const std::vector<std::string> &align_1, 
+                    const std::vector<std::string> &align_2) {
+    /*Receives the two aligned sequences (string vectors) and prints them to the
+     *standard output.*/
     std::cout << "Optimal global alignment(upmost):\n";
-    for (std::vector<std::string>::size_type i = 0; i < align_1.size(); ++i)
+    for (std::vector<std::string>::size_type i = 0; i < align_1.size(); i++)
         std::cout << align_1[i] << ' ';
     std::cout << "\n";
-    for (std::vector<std::string>::size_type i = 0; i < align_2.size(); ++i)
+    for (std::vector<std::string>::size_type i = 0; i < align_2.size(); i++)
         std::cout << align_2[i] << ' ';
     std::cout << "\n";
 }
 
 int main() {
-    std::ifstream fsim_matrix;
-    std::ifstream fseq_1, fseq_2;
-    sequence seq_1, seq_2;
+    std::ifstream fsim_matrix, fseq_1, fseq_2;
+    std::vector<int> seq_1, seq_2;
     int sim;
     std::vector<std::string> align_1, align_2;
     createSimMatrix(fsim_matrix);
     printSimMatrix();
-    createSeqArray(fseq_1, &seq_1, "sequence_1.txt");
-    createSeqArray(fseq_2, &seq_2, "sequence_2.txt");
+    createSeqArray(fseq_1, seq_1, "sequence_1.txt");
+    createSeqArray(fseq_2, seq_2, "sequence_2.txt");
     printSeqs(seq_1, seq_2);
-    createDynMatrix(seq_1.len + 1, seq_2.len + 1);
-    sim = computeSim (seq_1, seq_2, GAP);
-    printDynMatrix(seq_1.len + 1, seq_2.len + 1);
+    createDynMatrix(seq_1.size() + 1, seq_2.size() + 1);
+    sim = computeSim (seq_1, seq_2);
+    printDynMatrix(seq_1.size() + 1, seq_2.size() + 1);
     std::cout << "Similarity: " << sim << "\n";
-    align(seq_1.len, seq_2.len, 0, align_1, align_2, seq_1, seq_2);
+    align(seq_1.size(), seq_2.size(), 0, align_1, align_2, seq_1, seq_2);
     printAlignment(align_1, align_2);
     deleteSimMatrix();
-    deleteDynMatrix(seq_1.len, seq_2.len);
+    deleteDynMatrix(seq_1.size() + 1, seq_2.size() + 1);
 }

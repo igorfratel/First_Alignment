@@ -1,11 +1,4 @@
-* Usar vector, me adequar à STL
 * Fazer testes de corretude
 * Fazer um profiling (estimativa da eficiencia, gargalos)
-* Adicionar medidas de segurança caso os arquivos estejam vazios
-
-fim
 * Fazer a matrix ser triangular
 * Imprimir a matriz triangular
-* valgrind e gdb
-* Dividir em múltiplos arquivos
-* Fazer headers
