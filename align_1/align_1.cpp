@@ -137,29 +137,31 @@ void align(int i, int j, int len, std::vector<std::string> &align_1, std::vector
     else if (i > 0 && dyn_matrix[i][j] == dyn_matrix[i-1][j] + GAP) {
         align(i - 1, j, len, align_1, align_2, seq_1, seq_2);
         len++;
-        align_1.push_back(std::to_string(seq_1.symbols[i]));
+        align_1.push_back(std::to_string(seq_1.symbols[i-1]));
         align_2.push_back("-");
     }
     else if (i > 0 && j > 0 && dyn_matrix[i][j] == dyn_matrix[i-1][j-1] + sim_matrix[seq_1.symbols[i-1]-1][seq_2.symbols[j-1]-1]) {
         align(i - 1, j - 1, len, align_1, align_2, seq_1, seq_2);
         len++;
-        align_1.push_back(std::to_string(seq_1.symbols[i]));
-        align_2.push_back(std::to_string(seq_2.symbols[j]));
+        align_1.push_back(std::to_string(seq_1.symbols[i-1]));
+        align_2.push_back(std::to_string(seq_2.symbols[j-1]));
     }
     else {
         align(i, j - 1, len, align_1, align_2, seq_1, seq_2);
         len++;
         align_1.push_back("-");
-        align_2.push_back(std::to_string(seq_2.symbols[j]));
+        align_2.push_back(std::to_string(seq_2.symbols[j-1]));
     }
 }
 
 void printAlignment(const std::vector<std::string> &align_1, const std::vector<std::string> &align_2) {
+    std::cout << "Optimal global alignment(upmost):\n";
     for (std::vector<std::string>::size_type i = 0; i < align_1.size(); ++i)
         std::cout << align_1[i] << ' ';
     std::cout << "\n";
     for (std::vector<std::string>::size_type i = 0; i < align_2.size(); ++i)
         std::cout << align_2[i] << ' ';
+    std::cout << "\n";
 }
 
 int main() {

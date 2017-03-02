@@ -1,4 +1,3 @@
-* Arrumar os erros da função align e printAlign
 * Usar vector, me adequar à STL
 * Fazer testes de corretude
 * Fazer um profiling (estimativa da eficiencia, gargalos)
