@@ -177,7 +177,7 @@ int main() {
     printSimMatrix();
     createSeqArray(fseq_1, seq_1, "sequence_1.txt");
     createSeqArray(fseq_2, seq_2, "sequence_2.txt");
-    printSeqs(seq_1, seq_2);
+    printSeqs(seq_1, seq_2);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
     createDynMatrix(seq_1.size() + 1, seq_2.size() + 1);
     sim = computeSim (seq_1, seq_2);
     printDynMatrix(seq_1.size() + 1, seq_2.size() + 1);

@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -std=c++11 -I -g
+CFLAGS = -Wall -std=c++11 -I -g -pg
 TARGET = align_1
 all: $(TARGET)
 
